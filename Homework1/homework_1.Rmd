@@ -1,0 +1,122 @@
+---
+title: "Untitled"
+author: "grienne"
+date: "January 20, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Libraries & Data}
+
+library(foreign)
+library(haven)
+library(tidyverse)
+library(broom)
+
+ventilation_study <- read_sas("ventilation_study.sas7bdat", 
+    NULL)
+
+hgb <- read.csv("hgb.csv", header = TRUE)
+
+
+```
+
+
+Question 1 (a)
+
+i. 
+
+
+B-hat = -.3481.
+B-hat SE = .408
+Df = 46
+
+ii.
+
+The mean difference is -.3481 and is not statistically significant at t = -.853 and p > .05
+
+
+```{r}
+
+q1_lm <- lm(temperature~vent_volume, data = ventilation_study)
+summary(q1_lm)
+
+```
+
+Question 1b
+
+i.B= -1.825821, SE = 3.38882, df = 7
+
+ii. No
+
+iii. No, they are the same.
+
+```{r}
+
+
+q1_lm_b <- ventilation_study %>%
+             group_by(subject) %>%
+               do(tidy(lm(temperature~vent_volume, data =.))) 
+
+q1_i <- q1_lm_b %>%
+        group_by(subject) %>%
+          filter(term != "(Intercept)")
+
+mean(q1_i$estimate)
+
+mean(q1_i$std.error)
+
+t.test(q1_i$estimate, mu = 0)
+```
+
+
+
+Question 2a. 
+
+i. Mean diff for paired was 2.952809, for non-paired was 2.953; 
+   There is a significant difference at p < .05
+ii. the 2 sample t test given the CI being smaller. 
+
+```{r}
+
+q2_a1 <- t.test(hgb$hgb9,hgb$hgb36, alternative = "two.sided", paired = FALSE, var.equal = FALSE)
+q2_a1
+
+q2_a1_pair<- t.test(hgb$hgb9,hgb$hgb36, paired=TRUE)
+q2_a1_pair
+
+```
+
+
+Question 2b
+
+--There is not a significant difference (p >.05)
+--R^2 = .0003
+
+```{r}
+
+q2_b <- lm(change~group, data= hgb)
+summary(q2_b)
+
+```
+
+
+Question 2c
+
+--There is an association (p<.05)
+--With increased water consumption, the rate of changed is positively correlated. 
+--Confidence Interval (0.003575739, 0.003874455)
+--R^2 = .71
+--This model has a much higher R-squared and likely more accuracy
+
+
+```{r}
+
+q2_c <- lm(change~water, data = hgb)
+summary(q2_c)
+
+confint(q2_c)
+```
