@@ -1,0 +1,55 @@
+---
+title: "TLC_Olga_January26"
+author: "grienne"
+date: "January 25, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+library(tidyverse)
+library(haven)
+library(broom)
+
+
+
+tlc <- read_sas("tlc.sas7bdat", NULL)
+
+```
+
+
+```{r Part 1}
+
+#We need to transpose this data to a usable format
+#each subj per treatment, should have its own row per time point
+#the command is via tidyr package
+
+tlc_adj <- tlc %>%
+          gather(time, lead, y0:y6)
+
+#gather command is quick, here, I am telling R, that time is my new variable (the y0...)
+#I am also telling R that the values per time are now in a column called lead
+#Note, the columns used to create multiple rows y0:y6, that must come at the end of the () statement
+
+
+tlc_adj$id <- as.factor(tlc_adj$id)
+tlc_adj$trt <- as.factor(tlc_adj$trt)
+tlc_adj$time <- as.factor(tlc_adj$time)
+
+
+```
+
+
+```{r Part 2}
+
+#linear regression for multiple points in a dataset
+
+tlc_lr <- tlc_adj%>%
+            do(tidy(lm(lead ~ trt + time + trt*time, data =.))) 
+
+##how to change to repeated??
+```
